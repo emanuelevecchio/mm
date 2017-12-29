@@ -20,6 +20,7 @@ catch {
 }
 
 $resGroups = Get-AzureRmResourceGroup
+#$resGroups = Get-AzureRmResourceGroup -Name "evecchioRG"
 foreach ($rg in $resGroups) {
     $rgName = $rg.ResourceGroupName.Trim()
     Write-Output "DEBUG: looping on RG $rgName"
