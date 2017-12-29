@@ -1,3 +1,3 @@
 # MM
 
-Basic repository for MM Azure automation scripts
+Basic repository for MM Clouds automation scripts
