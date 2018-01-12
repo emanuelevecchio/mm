@@ -3,7 +3,7 @@
         This script add every *required* ResourceGroup tags into each resource contained in it
         It does not ovverride existing tags.
         It is meant to be inoken only by webhook.
-        
+
 #>
 
 param (
@@ -24,12 +24,12 @@ if ($WebhookData -ne $null) {
 $connectionName = "AzureRunAsConnection"
 try
 {
-    $servicePrincipalConnection=Get-AutomationConnection -Name $connectionName         
+    $servicePrincipalConnection=Get-AutomationConnection -Name $connectionName
     Add-AzureRmAccount `
         -ServicePrincipal `
         -TenantId $servicePrincipalConnection.TenantId `
         -ApplicationId $servicePrincipalConnection.ApplicationId `
-        -CertificateThumbprint $servicePrincipalConnection.CertificateThumbprint 
+        -CertificateThumbprint $servicePrincipalConnection.CertificateThumbprint
 }
 catch {
     if (!$servicePrincipalConnection)
@@ -55,7 +55,7 @@ foreach ($resGroup in $resGroups) {
 
             $resourcetagsource = (Get-AzureRmResource -ResourceId $resource.ResourceId).Tags
             if ($resourcetagsource -eq $null) {
-                $resourcetagsource =  @()
+                $resourcetagsource =  @{}
             }
             $resourcetags = $resourcetagsource
             foreach ($tag in $resGroup.Tags.GetEnumerator())
