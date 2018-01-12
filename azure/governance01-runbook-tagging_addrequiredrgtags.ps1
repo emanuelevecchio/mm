@@ -38,7 +38,7 @@ foreach ($resGroup in $resGroups) {
 
             $resourcetagsource = (Get-AzureRmResource -ResourceId $resource.ResourceId).Tags
             if ($resourcetagsource -eq $null) {
-                $resourcetagsource =  @()
+                $resourcetagsource =  @{}
             }
             $resourcetags = $resourcetagsource
             foreach ($tag in $resGroup.Tags.GetEnumerator())
