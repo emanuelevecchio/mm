@@ -34,19 +34,22 @@ foreach ($resGroup in $resGroups) {
 		$resources = $resGroup | Find-AzureRmResource
 		foreach ($resource in $resources)
 		{
-            Write-Output $resource.Name
+        Write-Output $resource.Name
 
-            $resourcetagsource = (Get-AzureRmResource -ResourceId $resource.ResourceId).Tags
-            if ($resourcetagsource -eq $null) {
-                $resourcetagsource =  @{}
-            }
-            $resourcetags = $resourcetagsource
-            foreach ($tag in $resGroup.Tags.GetEnumerator())
-            {
-                if ($requiredTags.contains($tag.Name) -And !$resourcetagsource.ContainsKey($tag.Name)) { $resourcetags.Add($tag.Name,$tag.Value) }
-            }
+        $resourcetagsource = (Get-AzureRmResource -ResourceId $resource.ResourceId).Tags
+        if ($resourcetagsource -eq $null) {
+            $resourcetagsource =  @{}
+        }
+        $resourcetags = $resourcetagsource
+        foreach ($tag in $resGroup.Tags.GetEnumerator())
+        {
+            if ($requiredTags.contains($tag.Name) -And !$resourcetagsource.ContainsKey($tag.Name)) { $resourcetags.Add($tag.Name,$tag.Value) }
+        }
 
-			Set-AzureRmResource -Tag $resourcetags -ResourceId $resource.ResourceId -Force
+        # Some resource cannot be tagged
+        if ($resource.ResourceType -ne "Microsoft.OperationsManagement/solutions") {
+            Set-AzureRmResource -Tag $resourcetags -ResourceId $resource.ResourceId -Force
+        }
 		}
 	}
 }
