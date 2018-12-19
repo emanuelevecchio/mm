@@ -28,30 +28,39 @@ catch {
 
 $requiredTags = @("bl", "env", "owner", "region", "svc")
 
-$resGroups = Get-AzureRmResourceGroup
-foreach ($resGroup in $resGroups) {
+$subscriptList = Get-AzureRmSubscription
+foreach ($subscription in $subscriptList) {
+	$subId = $subscription.SubscriptionId
+	$subName = $subscription.Name
+	Set-AzureRmContext -SubscriptionId $subId
+	write-output "Looping on $subName ..."
+
+  $resGroups = Get-AzureRmResourceGroup
+  foreach ($resGroup in $resGroups) {
     # Avoid looping on RGs created by Databricks, and RGs without Tags:
     $toBeExcluded = $resGroup.ResourceGroupName | Select-String -Pattern "databricks-rg" -Quiet
     if ($resGroup.Tags -ne $null -And $toBeExcluded -ne $true) {
-		$resources = $resGroup | Find-AzureRmResource
-		foreach ($resource in $resources)
-		{
-        Write-Output $resource.Name
+      $resName = $resGroup.ResourceGroupName
+      write-output "looping on $resName ..."
+  		$resources = Get-AzureRmResource -ResourceGroupName $resName
+  		foreach ($resource in $resources)	{
+          Write-Output $resource.Name
 
-        $resourcetagsource = (Get-AzureRmResource -ResourceId $resource.ResourceId).Tags
-        if ($resourcetagsource -eq $null) {
-            $resourcetagsource =  @{}
-        }
-        $resourcetags = $resourcetagsource
-        foreach ($tag in $resGroup.Tags.GetEnumerator())
-        {
-            if ($requiredTags.contains($tag.Name) -And !$resourcetagsource.ContainsKey($tag.Name)) { $resourcetags.Add($tag.Name,$tag.Value) }
-        }
+          $resourcetagsource = (Get-AzureRmResource -ResourceId $resource.ResourceId).Tags
+          if ($resourcetagsource -eq $null) {
+              $resourcetagsource =  @{}
+          }
+          $resourcetags = $resourcetagsource
+          foreach ($tag in $resGroup.Tags.GetEnumerator())
+          {
+              if ($requiredTags.contains($tag.Name) -And !$resourcetagsource.ContainsKey($tag.Name)) { $resourcetags.Add($tag.Name,$tag.Value) }
+          }
 
-        # Some resource cannot be tagged
-        if ($resource.ResourceType -ne "Microsoft.OperationsManagement/solutions") {
-            Set-AzureRmResource -Tag $resourcetags -ResourceId $resource.ResourceId -Force
-        }
-		}
-	}
+          # Some resource cannot be tagged
+          if ($resource.ResourceType -ne "Microsoft.OperationsManagement/solutions") {
+              Set-AzureRmResource -Tag $resourcetags -ResourceId $resource.ResourceId -Force
+          }
+  		}
+  	}
+  }
 }
