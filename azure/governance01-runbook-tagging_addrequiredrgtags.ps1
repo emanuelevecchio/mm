@@ -30,7 +30,9 @@ $requiredTags = @("bl", "env", "owner", "region", "svc")
 
 $resGroups = Get-AzureRmResourceGroup
 foreach ($resGroup in $resGroups) {
-    if ($resGroup.Tags -ne $null) {
+    # Avoid looping on RGs created by Databricks, and RGs without Tags:
+    $toBeExcluded = $resGroup.ResourceGroupName | Select-String -Pattern "databricks-rg" -Quiet
+    if ($resGroup.Tags -ne $null -And $toBeExcluded -ne $true) {
 		$resources = $resGroup | Find-AzureRmResource
 		foreach ($resource in $resources)
 		{
